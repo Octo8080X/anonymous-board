@@ -1,28 +1,18 @@
-import { Context, Handlers, PageProps } from "$fresh/server.ts";
+import { HandlerContext, Handlers, PageProps } from "$fresh/server.ts";
 import { envConfig } from "../util/config.ts";
 import { WithSession } from "fresh_session/mod.ts";
-
-interface Topic {
-  id: number;
-  title: string;
-}
-
-type Topics = Topic[];
-
-interface TopicsResource {
-  topics: Topics;
-  tokenStr: string;
-  errorMessage: string;
-}
+import { TopicsResource } from "../interfaces.ts";
+import { sanitize } from "../util/html_sanitizer.ts";
+import { validateUserInputTitle } from "../util/zod_validate.ts";
 
 export const handler: Handlers = {
-  async POST(req: Request, ctx: Context<WithSession>) {
+  async POST(req: Request, ctx: HandlerContext<WithSession>) {
+    const { session } = ctx.state;
     const form = await req.formData();
     const title = form.get("title");
 
     if (
-      !title || typeof title !== "string" || title.length === 0 ||
-      title.length > 90
+      typeof title !== "string"
     ) {
       return new Response("", {
         status: 303,
@@ -30,8 +20,27 @@ export const handler: Handlers = {
       });
     }
 
+    if (typeof title !== "string") {
+      return new Response("", {
+        status: 303,
+        headers: { Location: req.headers.get("referer") || "/" },
+      });
+    }
+
+    const sanitizedTitle = sanitize(title);
+
+    const validateResult = validateUserInputTitle(sanitizedTitle);
+
+    if (!validateResult.success) {
+      session.flash("errorMessage", "入力が不適切です");
+      return new Response("", {
+        status: 303,
+        headers: { Location: req.headers.get("referer") || "/" },
+      });
+    }
+
     const result = await fetch(
-      `${envConfig.SUPABASE_EDGE_FUNCTION_END_POINT}/topic`,
+      `${envConfig.SUPABASE_EDGE_FUNCTION_END_POINT}/create_topic`,
       {
         method: "POST",
         headers: {
@@ -39,7 +48,7 @@ export const handler: Handlers = {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          title,
+          title: validateResult.data,
         }),
       },
     );
@@ -55,11 +64,11 @@ export const handler: Handlers = {
       headers: { Location: "/topics" },
     });
   },
-  async GET(req: Request, ctx: Context<WithSession>) {
+  async GET(req: Request, ctx: HandlerContext<WithSession>) {
     const { session } = ctx.state;
 
     const result = await fetch(
-      `${envConfig.SUPABASE_EDGE_FUNCTION_END_POINT}/topics`,
+      `${envConfig.SUPABASE_EDGE_FUNCTION_END_POINT}/get_topics`,
       {
         headers: {
           Authorization: `Bearer ${envConfig.SUPABASE_ANON_KEY}`,
@@ -68,12 +77,11 @@ export const handler: Handlers = {
       },
     );
 
-    
     const data = await result.json();
     const resource: TopicsResource = {
       ...data,
       tokenStr: session.get("csrf").tokenStr,
-      errorMessage: session.flash("Error"),
+      errorMessage: session.flash("errorMessage"),
     };
 
     return await ctx.render(resource);
@@ -111,7 +119,7 @@ export default function Topics(props: PageProps<TopicsResource>) {
       {!props.data.topics
         ? ""
         : props.data.topics.map((topic) => (
-          <a href={"/topic/" + topic.id}>
+          <a href={"/topics/" + topic.id}>
             <div class="w-full mb-2 select-none border-l-4 border-gray-400 bg-gray-100 p-4 font-medium hover:border-blue-500">
               <div>
                 <p class="text-9x1 break-all">{topic.title}</p>

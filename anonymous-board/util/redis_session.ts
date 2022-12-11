@@ -1,6 +1,4 @@
-import {
-  redisSession as redisSessionModule,
-} from "fresh_session/mod.ts";
+import { redisSession as redisSessionModule } from "fresh_session/mod.ts";
 import { redisConnect } from "./redis.ts";
 import { envConfig } from "./config.ts";
 

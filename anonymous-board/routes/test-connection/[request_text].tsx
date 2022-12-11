@@ -12,8 +12,7 @@ export const handler: Handlers<ResponseBody | null> = {
       {
         method: "POST",
         headers: {
-          Authorization:
-            `Bearer ${envConfig.SUPABASE_ANON_KEY}`,
+          Authorization: `Bearer ${envConfig.SUPABASE_ANON_KEY}`,
           "Content-Type": "application/json",
         },
         body: JSON.stringify({ name: ctx.params.request_text }),

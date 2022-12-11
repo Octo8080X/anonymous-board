@@ -1,8 +1,5 @@
 import { MiddlewareHandlerContext } from "$fresh/server.ts";
-import {
-  matchRootRoutePath,
-  matchAppRoutePath,
-} from "../util/url.ts";
+import { matchAppRoutePath, matchRootRoutePath } from "../util/url.ts";
 import { computeTokenPair, computeVerifyTokenPair } from "../util/csrf.ts";
 import { Cookie, getCookies, setCookie } from "std_cookie";
 import { type State } from "./session.ts";
@@ -15,8 +12,8 @@ export async function csrfHandler(
   const urlObject = new URL(req.url);
 
   if (
-    matchRootRoutePath(urlObject) ||  // '/' に対応
-    matchAppRoutePath(urlObject)      // 後で用意する '/topics' '/topic/**' に対応
+    matchRootRoutePath(urlObject) || // '/' に対応
+    matchAppRoutePath(urlObject) // 後で用意する '/topics' '/topic/**' に対応
   ) {
     const tmpReq = req.clone();
 
@@ -38,7 +35,7 @@ export async function csrfHandler(
         });
         session.flash("Error", "不適切なリクエスト");
 
-        console.log(session)
+        console.log(session);
         return new Response("", {
           status: 303,
           headers: { Location: new URL(tmpReq.url).pathname },
