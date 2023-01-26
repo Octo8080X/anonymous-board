@@ -8,6 +8,9 @@ const envConfig = {
   SESSION_SECONDS: Deno.env.get("SESSION_SECONDS")!,
   SECRET: Deno.env.get("SECRET")!,
   SALT: Deno.env.get("SALT")!,
+  DENO_ENV: Deno.env.get("DENO_ENV")!,
+  UPSTASH_REDIS_REST_URL: Deno.env.get("UPSTASH_REDIS_REST_URL")!,
+  UPSTASH_REDIS_REST_TOKEN: Deno.env.get("UPSTASH_REDIS_REST_TOKEN")!,
 };
 
 export { envConfig };
