@@ -31,13 +31,13 @@ jobs:
           SUPABASE_POSTGRES_PASSWORD: ${{secrets.SUPABASE_POSTGRES_PASSWORD}}
           SUPABASE_POSTGRES_PORT: ${{secrets.SUPABASE_POSTGRES_PORT}}
         run: |
-          echo SUPABASE_POSTGRES_HOST=$SUPABASE_POSTGRES_HOST >> ./app/.env
-          echo SUPABASE_POSTGRES_USER=$SUPABASE_POSTGRES_USER >> ./app/.env
-          echo SUPABASE_POSTGRES_PASSWORD=$SUPABASE_POSTGRES_PASSWORD >> ./app/.env
-          echo SUPABASE_POSTGRES_DB=$SUPABASE_POSTGRES_DB >> ./app/.env
-          echo SUPABASE_POSTGRES_PORT=$SUPABASE_POSTGRES_PORT >> ./app/.env
+          echo SUPABASE_POSTGRES_HOST=$SUPABASE_POSTGRES_HOST >> ./anonymous-board/.env
+          echo SUPABASE_POSTGRES_USER=$SUPABASE_POSTGRES_USER >> ./anonymous-board/.env
+          echo SUPABASE_POSTGRES_PASSWORD=$SUPABASE_POSTGRES_PASSWORD >> ./anonymous-board/.env
+          echo SUPABASE_POSTGRES_DB=$SUPABASE_POSTGRES_DB >> ./anonymous-board/.env
+          echo SUPABASE_POSTGRES_PORT=$SUPABASE_POSTGRES_PORT >> ./anonymous-board/.env
 
-          docker-compose exec -T app bash -c 'cd anonymous-board && deno task db:migrate'
+          docker-compose exec -T anonymous-board bash -c 'cd anonymous-board && deno task db:migrate'
 
 # 以下 supabase Edge functions へのデプロイ 
       - uses: supabase/setup-cli@v1
@@ -58,4 +58,4 @@ jobs:
         uses: denoland/deployctl@v1
         with:
           project: "anonymous-board"
-          entrypoint: "./app/main.ts"
+          entrypoint: "./anonymous-board/main.ts"
