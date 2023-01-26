@@ -37,7 +37,7 @@ jobs:
           echo SUPABASE_POSTGRES_DB=$SUPABASE_POSTGRES_DB >> ./anonymous-board/.env
           echo SUPABASE_POSTGRES_PORT=$SUPABASE_POSTGRES_PORT >> ./anonymous-board/.env
 
-          docker-compose exec -T anonymous-board bash -c 'cd anonymous-board && deno task db:migrate'
+          docker-compose exec -T app bash -c 'cd anonymous-board && deno task db:migrate'
 
 # 以下 supabase Edge functions へのデプロイ 
       - uses: supabase/setup-cli@v1
