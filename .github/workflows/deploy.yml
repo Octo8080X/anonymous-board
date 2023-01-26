@@ -1,0 +1,61 @@
+name: anonymous-board deploy
+
+on: [push]
+    
+jobs:
+  deploy:
+    name: anonymous-board deploy
+    runs-on: ubuntu-latest
+    timeout-minutes: 600
+    permissions:
+      id-token: write # Needed for auth with Deno Deploy
+      contents: read # Needed to clone the repository
+    steps:
+      - uses: actions/checkout@v3
+      - uses: supabase/setup-cli@v1
+        with:
+          version: 1.0.0
+
+# 以下 supabase データベース のマイグレーション 
+      # Denoコンテナ準備
+      - name: Do `container preparation`
+        run: |
+          docker-compose build
+          docker-compose up -d
+      
+      - name: Do suppabase db migrate
+        env:
+          SUPABASE_POSTGRES_HOST: ${{secrets.SUPABASE_POSTGRES_HOST}}
+          SUPABASE_POSTGRES_DB: ${{secrets.SUPABASE_POSTGRES_DB}}
+          SUPABASE_POSTGRES_USER: ${{secrets.SUPABASE_POSTGRES_USER}}
+          SUPABASE_POSTGRES_PASSWORD: ${{secrets.SUPABASE_POSTGRES_PASSWORD}}
+          SUPABASE_POSTGRES_PORT: ${{secrets.SUPABASE_POSTGRES_PORT}}
+        run: |
+          echo SUPABASE_POSTGRES_HOST=$SUPABASE_POSTGRES_HOST >> ./app/.env
+          echo SUPABASE_POSTGRES_USER=$SUPABASE_POSTGRES_USER >> ./app/.env
+          echo SUPABASE_POSTGRES_PASSWORD=$SUPABASE_POSTGRES_PASSWORD >> ./app/.env
+          echo SUPABASE_POSTGRES_DB=$SUPABASE_POSTGRES_DB >> ./app/.env
+          echo SUPABASE_POSTGRES_PORT=$SUPABASE_POSTGRES_PORT >> ./app/.env
+
+          docker-compose exec -T app bash -c 'cd anonymous-board && deno task db:migrate'
+
+# 以下 supabase Edge functions へのデプロイ 
+      - uses: supabase/setup-cli@v1
+        with:
+          version: 1.0.0
+
+      - name: supabase edge functions deploy
+        env:
+            SUPABASE_ACCESS_TOKEN: ${{secrets.SUPABASE_ACCESS_TOKEN}}
+            SUPABASE_PROJECT_ID: ${{secrets.SUPABASE_PROJECT_ID}}
+            SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_POSTGRES_PASSWORD }}
+        run: |
+          supabase link --project-ref $SUPABASE_PROJECT_ID
+          supabase functions deploy board_api --project-ref $SUPABASE_PROJECT_ID
+
+# 以下 Deno Deploy へのデプロイ 
+      - name: Upload to Deno Deploy
+        uses: denoland/deployctl@v1
+        with:
+          project: "anonymous-board"
+          entrypoint: "./app/main.ts"
