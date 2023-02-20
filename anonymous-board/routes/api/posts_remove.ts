@@ -26,6 +26,7 @@ export const handler = async (
     return new Response("Invalid signature", { status: 401 });
   }
 
+  console.log(req);
   // supabase Edge Functions を呼び出す
 
   return new Response("", { status: 200 });
