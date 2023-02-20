@@ -15,6 +15,7 @@
     "std_cookie": "https://deno.land/std@0.159.0/http/cookie.ts",
     "zod": "https://deno.land/x/zod@v3.20.0/mod.ts",
     "ammonia": "https://deno.land/x/ammonia@0.3.1/mod.ts",
-    "upstash_redis/": "https://deno.land/x/upstash_redis/"
+    "upstash_redis/": "https://deno.land/x/upstash_redis/",
+    "@upstash/qstash/": "https://deno.land/x/upstash_qstash@v0.3.6/"
   }
 }
