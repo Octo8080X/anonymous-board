@@ -6,10 +6,11 @@ import config from "./deno.json" assert { type: "json" };
 import * as $0 from "./routes/[name].tsx";
 import * as $1 from "./routes/_middleware.ts";
 import * as $2 from "./routes/api/joke.ts";
-import * as $3 from "./routes/index.tsx";
-import * as $4 from "./routes/test-connection/[request_text].tsx";
-import * as $5 from "./routes/topics.tsx";
-import * as $6 from "./routes/topics/[topicId].tsx";
+import * as $3 from "./routes/api/posts_remove.ts";
+import * as $4 from "./routes/index.tsx";
+import * as $5 from "./routes/test-connection/[request_text].tsx";
+import * as $6 from "./routes/topics.tsx";
+import * as $7 from "./routes/topics/[topicId].tsx";
 import * as $$0 from "./islands/Counter.tsx";
 
 const manifest = {
@@ -17,10 +18,11 @@ const manifest = {
     "./routes/[name].tsx": $0,
     "./routes/_middleware.ts": $1,
     "./routes/api/joke.ts": $2,
-    "./routes/index.tsx": $3,
-    "./routes/test-connection/[request_text].tsx": $4,
-    "./routes/topics.tsx": $5,
-    "./routes/topics/[topicId].tsx": $6,
+    "./routes/api/posts_remove.ts": $3,
+    "./routes/index.tsx": $4,
+    "./routes/test-connection/[request_text].tsx": $5,
+    "./routes/topics.tsx": $6,
+    "./routes/topics/[topicId].tsx": $7,
   },
   islands: {
     "./islands/Counter.tsx": $$0,
