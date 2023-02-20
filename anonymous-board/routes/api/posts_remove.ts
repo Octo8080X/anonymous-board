@@ -12,6 +12,8 @@ export const handler = async (
   _ctx: HandlerContext,
 ): Promise<Response> => {
 
+  if(req.headers.get("method")!=="POST") return new Response("", { status: 404 });
+
   const isValid = await receiver.verify({
     signature: req.headers.get("Upstash-Signature"),
     body: await req.text(),
