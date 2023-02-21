@@ -11,8 +11,7 @@ export const handler = async (
   req: Request,
   _ctx: HandlerContext,
 ): Promise<Response> => {
-
-  if(req.method !== "POST"){ 
+  if (req.method !== "POST") {
     console.error("not method POST");
     return new Response("", { status: 404 });
   }

@@ -1,7 +1,7 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@^1.33.2";
 import { serve } from "https://deno.land/std@0.131.0/http/server.ts";
 import { Router } from "https://deno.land/x/acorn/mod.ts";
-
+import { datetime } from "https://deno.land/x/ptera/mod.ts";
 export const supabaseClient = createClient(
   Deno.env.get("SUPABASE_URL")!,
   Deno.env.get("SUPABASE_ANON_KEY")!,
@@ -80,6 +80,42 @@ router.post("/board_api/posts", async (ctx) => {
   }
 
   return { ...data };
+});
+
+router.post("/database-access/remove_posts", async () => {
+  const now = new Date();
+  const dateTime = datetime(now.setHours(now.getHours() - 1));
+  const limit = dateTime.toUTC().format("YYYY-MM-dd HH:mm:ss");
+
+  const postDeleteResult = await supabaseClient.from("posts").delete().lt(
+    "created_at",
+    limit,
+  );
+
+  if (postDeleteResult.statusText !== "OK") return { success: false };
+
+  const topicsDeleteTargetResult = await supabaseClient.from("topics").select(
+    "id, posts(id)",
+    { count: "exact" },
+  ).lt("created_at", limit);
+
+  if (
+    topicsDeleteTargetResult.statusText !== "OK" || !topicsDeleteTargetResult ||
+    !topicsDeleteTargetResult.data
+  ) return { success: false };
+
+  const topicsDeleteTargets = topicsDeleteTargetResult.data.filter((
+    p: { id: number; posts: any[] },
+  ) => p.posts.length === 0).map((p: { id: number; posts: any[] }) => p.id);
+
+  if (topicsDeleteTargets.length === 0) return { success: true };
+
+  const topicsDeleteResult = await supabaseClient.from("topics").delete()
+    .filter("id", "in", `(${topicsDeleteTargets.join(",")})`);
+
+  if (topicsDeleteResult.statusText !== "OK") return { success: false };
+
+  return { success: true };
 });
 
 await serve(
