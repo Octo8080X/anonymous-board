@@ -28,8 +28,18 @@ export const handler = async (
     return new Response("Invalid signature", { status: 401 });
   }
 
-  console.log(req);
-  // supabase Edge Functions を呼び出す
+  const result = await fetch(
+    `${envConfig.SUPABASE_EDGE_FUNCTION_END_POINT}/remove_posts`,
+    {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${envConfig.SUPABASE_ANON_KEY}`,
+        "Content-Type": "application/json",
+      },
+    },
+  );
+
+  console.log(result);
 
   return new Response("", { status: 200 });
 };
