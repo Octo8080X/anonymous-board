@@ -82,7 +82,7 @@ router.post("/board_api/posts", async (ctx) => {
   return { ...data };
 });
 
-router.post("/database-access/remove_posts", async () => {
+router.post("/board_api/remove_posts", async () => {
   const now = new Date();
   const dateTime = datetime(now.setHours(now.getHours() - 1));
   const limit = dateTime.toUTC().format("YYYY-MM-dd HH:mm:ss");
