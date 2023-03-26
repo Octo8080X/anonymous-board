@@ -9,9 +9,9 @@ export const supabaseClient = createClient(
 
 const router = new Router();
 
-router.get("/board_api/get_topics", async (ctx) => {
+router.get("/board_api/topics", async (ctx) => {
   const topics = await supabaseClient.from("topics").select(
-    "id, title",
+    "id, title, accounts(public_id)",
   );
 
   if (topics.error) {
@@ -22,12 +22,11 @@ router.get("/board_api/get_topics", async (ctx) => {
   return { topics: topics.data };
 });
 
-router.post("/board_api/create_topic", async (ctx) => {
+router.post("/board_api/topics", async (ctx) => {
   const params = (await ctx.body()) as {
     comment: string;
-    topic_id: number;
+    account_id: number;
   };
-  console.log(params);
 
   const { data, error } = await supabaseClient.from("topics").insert([
     params,
@@ -53,7 +52,7 @@ router.get("/board_api/topics/:id", async (ctx) => {
   }
 
   const posts = await supabaseClient.from("posts").select(
-    "id, comment",
+    "id, comment, accounts(public_id)",
   ).eq("topic_id", ctx.params.id);
 
   if (posts.error) {
@@ -68,6 +67,7 @@ router.post("/board_api/posts", async (ctx) => {
   const params = (await ctx.body()) as {
     comment: string;
     topic_id: number;
+    account_id: number;
   };
 
   const { data, error } = await supabaseClient.from("posts").insert([
@@ -116,6 +116,32 @@ router.post("/board_api/remove_posts", async () => {
   if (topicsDeleteResult.statusText !== "OK") return { success: false };
 
   return { success: true };
+});
+
+router.post("/board_api/accounts", async (ctx) => {
+  const params = (await ctx.body()) as { twitter_user_id: string };
+
+  const selectResult = await supabaseClient.from("accounts").select().eq(
+    "twitter_user_id",
+    params.twitter_user_id,
+  ).limit(1).single();
+
+  if (selectResult.statusText === "OK") {
+    return { id: selectResult.data.id, public_id: selectResult.data.public_id };
+  }
+
+  const public_id = crypto.randomUUID();
+
+  const insertResult = await supabaseClient.from("accounts").insert([
+    { twitter_user_id: params.twitter_user_id, public_id },
+  ]).single();
+
+  if (insertResult.error) {
+    console.error(insertResult.error);
+    throw new Error();
+  }
+
+  return { ...insertResult.data };
 });
 
 await serve(
