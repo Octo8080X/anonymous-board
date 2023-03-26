@@ -4,12 +4,20 @@ import { WithSession } from "fresh_session/mod.ts";
 import { validateUserInputComment } from "../../util/zod_validate.ts";
 import { sanitize } from "../../util/html_sanitizer.ts";
 import { TopicResource } from "../../interfaces.ts";
-
+import Header from "../../components/header.tsx";
 export const handler: Handlers = {
   async POST(req: Request, ctx: HandlerContext<WithSession>) {
     const { session } = ctx.state;
     const form = await req.formData();
     const comment = form.get("comment");
+    const accountId = session.get("account") ? session.get("account").id : null;
+
+    if (!accountId) {
+      return new Response("", {
+        status: 303,
+        headers: { Location: "/topics" },
+      });
+    }
 
     if (typeof comment !== "string") {
       return new Response("", {
@@ -41,6 +49,7 @@ export const handler: Handlers = {
         body: JSON.stringify({
           comment: validateResult.data,
           topic_id: ctx.params.topicId,
+          account_id: accountId,
         }),
       },
     );
@@ -68,6 +77,9 @@ export const handler: Handlers = {
   },
   async GET(req: Request, ctx: HandlerContext<WithSession>) {
     const { session } = ctx.state;
+    const publicId = session.get("account")
+      ? session.get("account").public_id
+      : null;
 
     const result = await fetch(
       `${envConfig.SUPABASE_EDGE_FUNCTION_END_POINT}/topics/${ctx.params.topicId}`,
@@ -98,6 +110,7 @@ export const handler: Handlers = {
       isSuccess: true,
       tokenStr: session.get("csrf").tokenStr,
       errorMessage: session.flash("errorMessage"),
+      publicId,
     };
 
     return ctx.render(topicData);
@@ -107,6 +120,7 @@ export const handler: Handlers = {
 export default function Topic(props: PageProps<TopicResource>) {
   return (
     <div class="p-2">
+      <Header publicId={props.data.publicId} />
       {props.data.isSuccess
         ? (
           <div>
@@ -151,6 +165,9 @@ export default function Topic(props: PageProps<TopicResource>) {
               >
                 <div>
                   <p class="text-9x1 text-gray-600 break-all">{post.comment}</p>
+                  <small>
+                    <p class="text-gray-400">by {post.accounts.public_id}</p>
+                  </small>
                 </div>
               </div>
             ))}

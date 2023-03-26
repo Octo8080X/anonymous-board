@@ -16,6 +16,8 @@
     "zod": "https://deno.land/x/zod@v3.20.0/mod.ts",
     "ammonia": "https://deno.land/x/ammonia@0.3.1/mod.ts",
     "upstash_redis/": "https://deno.land/x/upstash_redis/",
-    "@upstash/qstash/": "https://deno.land/x/upstash_qstash@v0.3.6/"
+    "@upstash/qstash/": "https://deno.land/x/upstash_qstash@v0.3.6/",
+    "twitter_oauth/": "https://deno.land/x/twitter_oauth_1_0a@1.0.5/",
+    "https://deno.land/std/hash/mod.ts": "https://deno.land/std@0.160.0/hash/mod.ts"
   }
 }

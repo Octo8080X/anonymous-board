@@ -4,16 +4,23 @@ import { WithSession } from "fresh_session/mod.ts";
 import { TopicsResource } from "../interfaces.ts";
 import { sanitize } from "../util/html_sanitizer.ts";
 import { validateUserInputTitle } from "../util/zod_validate.ts";
+import Header from "../components/header.tsx";
 
 export const handler: Handlers = {
   async POST(req: Request, ctx: HandlerContext<WithSession>) {
     const { session } = ctx.state;
     const form = await req.formData();
     const title = form.get("title");
+    const accountId = session.get("account") ? session.get("account").id : null;
 
-    if (
-      typeof title !== "string"
-    ) {
+    if (!accountId) {
+      return new Response("", {
+        status: 303,
+        headers: { Location: "/topics" },
+      });
+    }
+
+    if (typeof title !== "string") {
       return new Response("", {
         status: 303,
         headers: { Location: "/topics" },
@@ -40,7 +47,7 @@ export const handler: Handlers = {
     }
 
     const result = await fetch(
-      `${envConfig.SUPABASE_EDGE_FUNCTION_END_POINT}/create_topic`,
+      `${envConfig.SUPABASE_EDGE_FUNCTION_END_POINT}/topics`,
       {
         method: "POST",
         headers: {
@@ -49,26 +56,26 @@ export const handler: Handlers = {
         },
         body: JSON.stringify({
           title: validateResult.data,
+          account_id: accountId,
         }),
       },
     );
 
     const topic = await result.json();
 
-    // ここで投稿した本体の情報をチェックしますが、
-    // 本来は作成した掲示板にリダイレクトさせることを目的とします。
-    // 今回は、トピックの一覧ページへ戻します。
-
     return new Response("", {
       status: 303,
-      headers: { Location: "/topics" },
+      headers: { Location: `/topics/${topic.id}` },
     });
   },
   async GET(req: Request, ctx: HandlerContext<WithSession>) {
     const { session } = ctx.state;
+    const publicId = session.get("account")
+      ? session.get("account").public_id
+      : null;
 
     const result = await fetch(
-      `${envConfig.SUPABASE_EDGE_FUNCTION_END_POINT}/get_topics`,
+      `${envConfig.SUPABASE_EDGE_FUNCTION_END_POINT}/topics`,
       {
         headers: {
           Authorization: `Bearer ${envConfig.SUPABASE_ANON_KEY}`,
@@ -82,6 +89,7 @@ export const handler: Handlers = {
       ...data,
       tokenStr: session.get("csrf").tokenStr,
       errorMessage: session.flash("errorMessage"),
+      publicId,
     };
 
     return await ctx.render(resource);
@@ -91,6 +99,7 @@ export const handler: Handlers = {
 export default function Topics(props: PageProps<TopicsResource>) {
   return (
     <div class="p-2">
+      <Header publicId={props.data.publicId} />
       <div class="mb-2">
         <form method="POST" action="/topics">
           <input
@@ -99,18 +108,16 @@ export default function Topics(props: PageProps<TopicsResource>) {
             placeholder="新しい掲示板タイトル"
             class="w-full mb-1 rounded h-12 text-lg text-center"
           />
-          <input
-            type="hidden"
-            name="csrfToken"
-            value={props.data.tokenStr}
-          />
+          <input type="hidden" name="csrfToken" value={props.data.tokenStr} />
           {props.data.errorMessage
             ? (
               <div class="mt-4 h-12 p-2 bg-red-200 bg-red-200 rounded text-center text-red-500">
                 {props.data.errorMessage}
               </div>
             )
-            : ""}
+            : (
+              ""
+            )}
           <button class="bg-indigo-400 w-full rounded py-2 text-white">
             登録
           </button>
@@ -123,6 +130,9 @@ export default function Topics(props: PageProps<TopicsResource>) {
             <div class="w-full mb-2 select-none border-l-4 border-gray-400 bg-gray-100 p-4 font-medium hover:border-blue-500">
               <div>
                 <p class="text-9x1 break-all">{topic.title}</p>
+                <small>
+                  <p class="text-gray-400">by {topic.accounts.public_id}</p>
+                </small>
               </div>
             </div>
           </a>

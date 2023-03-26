@@ -35,7 +35,6 @@ export async function csrfHandler(
         });
         session.flash("Error", "不適切なリクエスト");
 
-        console.log(session);
         return new Response("", {
           status: 303,
           headers: { Location: new URL(tmpReq.url).pathname },

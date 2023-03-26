@@ -17,6 +17,11 @@ const envConfig = {
   UPSTASH_QSTASH_NEXT_SIGNING_KEY: Deno.env.get(
     "UPSTASH_QSTASH_NEXT_SIGNING_KEY",
   ),
+  TWITTER_API_KEY: Deno.env.get("TWITTER_API_KEY")!,
+  TWITTER_API_SECRET: Deno.env.get("TWITTER_API_SECRET")!,
+  TWITTER_CALLBACK_URL: Deno.env.get("TWITTER_CALLBACK_URL")!,
+  HOST: Deno.env.get("HOST")!,
+  PORT: Deno.env.get("PORT"),
 };
 
 export { envConfig };
