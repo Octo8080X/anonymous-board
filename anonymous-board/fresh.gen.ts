@@ -3,32 +3,28 @@
 // This file is automatically updated during development when running `dev.ts`.
 
 import config from "./deno.json" assert { type: "json" };
-import * as $0 from "./routes/[name].tsx";
-import * as $1 from "./routes/_middleware.ts";
-import * as $2 from "./routes/api/joke.ts";
-import * as $3 from "./routes/api/posts_remove.ts";
-import * as $4 from "./routes/auth/logout.tsx";
-import * as $5 from "./routes/auth/twitter/callback.tsx";
-import * as $6 from "./routes/auth/twitter/login.tsx";
-import * as $7 from "./routes/index.tsx";
-import * as $8 from "./routes/test-connection/[request_text].tsx";
-import * as $9 from "./routes/topics.tsx";
-import * as $10 from "./routes/topics/[topicId].tsx";
+import * as $0 from "./routes/_middleware.ts";
+import * as $1 from "./routes/api/joke.ts";
+import * as $2 from "./routes/api/posts_remove.ts";
+import * as $3 from "./routes/auth/logout.tsx";
+import * as $4 from "./routes/auth/twitter/callback.tsx";
+import * as $5 from "./routes/auth/twitter/login.tsx";
+import * as $6 from "./routes/index.tsx";
+import * as $7 from "./routes/topics.tsx";
+import * as $8 from "./routes/topics/[topicId].tsx";
 import * as $$0 from "./islands/Counter.tsx";
 
 const manifest = {
   routes: {
-    "./routes/[name].tsx": $0,
-    "./routes/_middleware.ts": $1,
-    "./routes/api/joke.ts": $2,
-    "./routes/api/posts_remove.ts": $3,
-    "./routes/auth/logout.tsx": $4,
-    "./routes/auth/twitter/callback.tsx": $5,
-    "./routes/auth/twitter/login.tsx": $6,
-    "./routes/index.tsx": $7,
-    "./routes/test-connection/[request_text].tsx": $8,
-    "./routes/topics.tsx": $9,
-    "./routes/topics/[topicId].tsx": $10,
+    "./routes/_middleware.ts": $0,
+    "./routes/api/joke.ts": $1,
+    "./routes/api/posts_remove.ts": $2,
+    "./routes/auth/logout.tsx": $3,
+    "./routes/auth/twitter/callback.tsx": $4,
+    "./routes/auth/twitter/login.tsx": $5,
+    "./routes/index.tsx": $6,
+    "./routes/topics.tsx": $7,
+    "./routes/topics/[topicId].tsx": $8,
   },
   islands: {
     "./islands/Counter.tsx": $$0,

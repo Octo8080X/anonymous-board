@@ -4,8 +4,8 @@ import { WithSession } from "fresh_session/mod.ts";
 import { TopicsResource } from "../interfaces.ts";
 import { sanitize } from "../util/html_sanitizer.ts";
 import { validateUserInputTitle } from "../util/zod_validate.ts";
-import Header from "../components/header.tsx";
-
+import CustomContainer from "../components/layout/CustomContainer.tsx";
+import ErrorPostForm from "../components/ErrorPostForm.tsx";
 export const handler: Handlers = {
   async POST(req: Request, ctx: HandlerContext<WithSession>) {
     const { session } = ctx.state;
@@ -96,47 +96,71 @@ export const handler: Handlers = {
   },
 };
 
-export default function Topics(props: PageProps<TopicsResource>) {
+interface TopicPostFormProps {
+  tokenStr: string;
+  errorMessage?: string;
+}
+
+function TopicPostForm(props: TopicPostFormProps) {
   return (
-    <div class="p-2">
-      <Header publicId={props.data.publicId} />
-      <div class="mb-2">
-        <form method="POST" action="/topics">
-          <input
-            type="text"
-            name="title"
-            placeholder="新しい掲示板タイトル"
-            class="w-full mb-1 rounded h-12 text-lg text-center"
-          />
-          <input type="hidden" name="csrfToken" value={props.data.tokenStr} />
-          {props.data.errorMessage
-            ? (
-              <div class="mt-4 h-12 p-2 bg-red-200 bg-red-200 rounded text-center text-red-500">
-                {props.data.errorMessage}
-              </div>
-            )
-            : (
-              ""
-            )}
-          <button class="bg-indigo-400 w-full rounded py-2 text-white">
-            登録
-          </button>
-        </form>
+    <form method="POST" action="/topics">
+      <input
+        type="text"
+        name="title"
+        placeholder="新しい掲示板タイトル"
+        class="w-full mb-1 rounded h-12 text-lg text-center border-2 border-gray-200"
+      />
+      <input type="hidden" name="csrfToken" value={props.tokenStr} />
+      {props.errorMessage
+        ? <ErrorPostForm errorMessage={props.errorMessage} />
+        : (
+          ""
+        )}
+      <button class="bg-indigo-400 w-full rounded py-2 text-white">
+        登録
+      </button>
+    </form>
+  );
+}
+
+interface TopicProps {
+  id: number;
+  title: string;
+  publicId: string;
+}
+
+function Topic({ id, title, publicId }: TopicProps) {
+  return (
+    <a href={"/topics/" + id}>
+      <div class="w-full mb-2 select-none border-l-4 border-gray-400 bg-gray-100 p-4 font-medium hover:border-blue-500">
+        <div>
+          <p class="text-9x1 break-all">{title}</p>
+          <small>
+            <p class="text-gray-400">by {publicId}</p>
+          </small>
+        </div>
       </div>
-      {!props.data.topics
-        ? ""
-        : props.data.topics.map((topic) => (
-          <a href={"/topics/" + topic.id}>
-            <div class="w-full mb-2 select-none border-l-4 border-gray-400 bg-gray-100 p-4 font-medium hover:border-blue-500">
-              <div>
-                <p class="text-9x1 break-all">{topic.title}</p>
-                <small>
-                  <p class="text-gray-400">by {topic.accounts.public_id}</p>
-                </small>
-              </div>
-            </div>
-          </a>
-        ))}
-    </div>
+    </a>
+  );
+}
+
+export default function Topics(props: PageProps<TopicsResource>) {
+  console.log(props);
+  return (
+    <CustomContainer title="トピック一覧" publicId={props.data.publicId}>
+      <div class="mb-2">
+        <TopicPostForm
+          tokenStr={props.data.tokenStr}
+          errorMessage={props.data.errorMessage}
+        />
+      </div>
+      {!props.data.topics ? "" : props.data.topics.map((topic) => (
+        <Topic
+          id={topic.id}
+          title={topic.title}
+          publicId={topic.accounts.public_id}
+        />
+      ))}
+    </CustomContainer>
   );
 }

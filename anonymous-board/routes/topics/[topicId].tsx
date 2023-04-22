@@ -4,7 +4,8 @@ import { WithSession } from "fresh_session/mod.ts";
 import { validateUserInputComment } from "../../util/zod_validate.ts";
 import { sanitize } from "../../util/html_sanitizer.ts";
 import { TopicResource } from "../../interfaces.ts";
-import Header from "../../components/header.tsx";
+import CustomContainer from "../../components/layout/CustomContainer.tsx";
+import ErrorPostForm from "../../components/ErrorPostForm.tsx";
 export const handler: Handlers = {
   async POST(req: Request, ctx: HandlerContext<WithSession>) {
     const { session } = ctx.state;
@@ -117,71 +118,102 @@ export const handler: Handlers = {
   },
 };
 
-export default function Topic(props: PageProps<TopicResource>) {
+interface CommnetPostFormProps {
+  tokenStr: string;
+  topicId: number;
+  errorMessage?: string;
+}
+
+function CommentPostForm(
+  { tokenStr, topicId, errorMessage }: CommnetPostFormProps,
+) {
   return (
-    <div class="p-2">
-      <Header publicId={props.data.publicId} />
+    <form method="POST" action={`/topics/${topicId}`}>
+      <input
+        type="text"
+        name="comment"
+        placeholder="いまどうしてる？"
+        class="w-full mb-1 rounded h-12 text-lg text-center border-2 border-gray-200"
+      />
+      <input
+        type="hidden"
+        name="csrfToken"
+        value={tokenStr}
+      />
+      {errorMessage ? <ErrorPostForm errorMessage={errorMessage} /> : ""}
+      <button class="bg-indigo-400 w-full rounded py-2 text-white">
+        登録
+      </button>
+    </form>
+  );
+}
+
+interface CommentProps {
+  id: number;
+  comment: string;
+  publicId: string;
+}
+
+function Comment({ id, comment, publicId }: CommentProps) {
+  return (
+    <div
+      class="w-full mb-2 border-l-4 border-gray-400 bg-gray-50 p-4 font-medium rounded"
+      key={id}
+      id={id}
+    >
+      <div>
+        <p class="text-9x1 text-gray-600 break-all">{comment}</p>
+        <small>
+          <p class="text-gray-400">by {publicId}</p>
+        </small>
+      </div>
+    </div>
+  );
+}
+
+function ErrorGetTopic() {
+  return (
+    <div class="flex justify-between w-full mb-2 border-rl-4 border-red-600 bg-gray-50 p-2 font-lerge text-center rounded">
+      <div class="justify-center w-full">
+        掲示板を取得できませんでした
+      </div>
+    </div>
+  );
+}
+
+export default function Topic(props: PageProps<TopicResource>) {
+  console.log(props)
+  return (
+    <CustomContainer
+      title={props.data.title}
+      publicId={props.data.publicId}
+    >
       {props.data.isSuccess
         ? (
-          <div>
+          <>
             <div class="flex justify-between w-full mb-2 border-rl-4 border-indigo-200 bg-gray-50 p-2 font-large text-center rounded">
               <div class="w-full">
                 {props.data.topic?.title}
               </div>
             </div>
             <div class="mb-2">
-              {props.data.errorMessage
-                ? (
-                  <div class="flex justify-between w-full mb-2 border-rl-4 border-red-500 text-red-400 bg-red-100 p-2 font-large text-center rounded">
-                    <div class="w-full">
-                      {props.data.errorMessage}
-                    </div>
-                  </div>
-                )
-                : ""}
-              <form method="POST" action={`/topics/${props.params.topicId}`}>
-                <input
-                  type="text"
-                  name="comment"
-                  placeholder="いまどうしてる？"
-                  class="w-full mb-1 rounded h-12 text-lg text-center"
-                />
-                <input
-                  type="hidden"
-                  name="csrfToken"
-                  value={props.data.tokenStr}
-                />
-                <button class="bg-indigo-400 w-full rounded py-2 text-white">
-                  登録
-                </button>
-              </form>
+              <CommentPostForm
+                tokenStr={props.data.tokenStr}
+                topicId={props.params.topicId}
+                errorMessage={props.data.errorMessage}
+              />
             </div>
 
             {props.data.posts?.map((post) => (
-              <div
-                class="w-full mb-2 border-l-4 border-gray-400 bg-gray-50 p-4 font-medium rounded"
-                key={post.id}
-                id={post.id.toString()}
-              >
-                <div>
-                  <p class="text-9x1 text-gray-600 break-all">{post.comment}</p>
-                  <small>
-                    <p class="text-gray-400">by {post.accounts.public_id}</p>
-                  </small>
-                </div>
-              </div>
+              <Comment
+                id={post.id}
+                comment={post.comment}
+                publicId={post.accounts.public_id}
+              />
             ))}
-          </div>
+          </>
         )
-        : (
-          <div>
-            <div class="flex justify-between w-full mb-2 border-rl-4 border-red-600 bg-gray-50 p-2 font-lerge text-center rounded">
-              <div class="justify-center w-full">
-                掲示板を取得できませんでした
-              </div>
-            </div>
-          </div>
-        )}
-    </div>
+        : <ErrorGetTopic />}
+    </CustomContainer>
   );
 }
